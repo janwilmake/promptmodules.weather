@@ -313,10 +313,13 @@ export default {
     const query = url.searchParams.get("q");
 
     if (!query) {
-      return new Response('Missing query parameter "q"', {
-        status: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
-      });
+      return new Response(
+        "Provide ?q=your%20prompt to get weather context. status 204 means no context needed",
+        {
+          status: 400,
+          headers: { "Access-Control-Allow-Origin": "*" },
+        }
+      );
     }
 
     let activate = isWeatherQuery(query);
@@ -337,8 +340,12 @@ export default {
         // Use location from query if found
         location = queryLocation;
       } else {
+        const cfObject: CfProperties<unknown> = request.headers.get("x-cf-data")
+          ? JSON.parse(request.headers.get("x-cf-data"))
+          : request.cf;
+
         // Fall back to current location from CF context
-        location = getLocationFromContext(request.cf!);
+        location = getLocationFromContext(cfObject);
       }
 
       // If we have a weather query and location, get the weather data
